@@ -185,7 +185,7 @@ contract RoleManagement {
             result := call(sub(gas, 10000), _role, 0, ptr, 0x4, ptr, mul(add(len, 0x2), 0x20))
             // TODO Why not work: remix not support returndatacopy
             // returndatacopy(permissions, 0, returndatasize)
-            if eq(result, 0) { revert(ptr, 0) }
+            switch eq(result, 0) case 1 { revert(ptr, 0) }
         }
 
         for (uint i = 0; i<len; i++) {
@@ -205,7 +205,7 @@ contract RoleManagement {
     /// @return The roles of the account
     function queryRoles(address _account)
         public
-        view
+        constant
         returns (address[])
     {
         return roles[_account];
@@ -216,7 +216,7 @@ contract RoleManagement {
     /// @return The accounts that have the role
     function queryAccounts(address _roleId)
         public
-        view
+        constant
         returns (address[])
     {
         return accounts[_roleId];
@@ -264,7 +264,7 @@ contract RoleManagement {
     /// @notice Private: account has permission in one of his roles
     function hasPermission(address _account, address _permission)
         private
-        view
+        constant
         returns (bool)
     {
         for (uint i = 0; i < roles[_account].length; i++) {

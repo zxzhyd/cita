@@ -12,7 +12,7 @@ library ContractCheck {
     /// @return true if successed, false otherwise
     function isContract(address _target)
         internal
-        view
+        constant
         returns (bool)
     {
         uint size;

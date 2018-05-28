@@ -129,7 +129,7 @@ contract GroupManagement {
     /// @return True if successed, otherwise false
     function checkScope(address _origin, address _target)
         public
-        view
+        constant
         returns (bool)
     {
         address parent = _target;
@@ -147,7 +147,7 @@ contract GroupManagement {
     /// @return All groups
     function queryGroups()
         public
-        view
+        constant
         returns (address[])
     {
         return groups;

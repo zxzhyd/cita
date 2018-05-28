@@ -126,7 +126,7 @@ contract QuotaManager is QuotaInterface, Error {
     /// @return true if it is, otherwise false
     function isAdmin(address _account)
         public
-        view
+        constant
         returns (bool)
     {
         return admins[_account];
@@ -136,7 +136,7 @@ contract QuotaManager is QuotaInterface, Error {
     /// @return The accounts that have AQL
     function getAccounts()
         public
-        view
+        constant
         returns (address[])
     {
         return accounts;
@@ -146,7 +146,7 @@ contract QuotaManager is QuotaInterface, Error {
     /// @return The accounts' quotas
     function getQuotas()
         public
-        view
+        constant
         returns (uint[])
     {
         return quotas;
@@ -156,7 +156,7 @@ contract QuotaManager is QuotaInterface, Error {
     /// @return The block quota limit
     function getBQL()
         public
-        view
+        constant
         returns (uint)
     {
         return BQL;
@@ -166,7 +166,7 @@ contract QuotaManager is QuotaInterface, Error {
     /// @return The default account quota limit
     function getDefaultAQL()
         public
-        view
+        constant
         returns (uint)
     {
         return defaultAQL;
@@ -176,7 +176,7 @@ contract QuotaManager is QuotaInterface, Error {
     /// @return The account quota limit
     function getAQL(address _account)
         public
-        view
+        constant
         returns (uint)
     {
         if (quota[_account] == 0)

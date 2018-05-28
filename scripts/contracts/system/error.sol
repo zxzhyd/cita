@@ -17,5 +17,5 @@ contract Error {
         NotReady
     }
 
-    event ErrorLog(ErrorType indexed errorType, string msg);
+    event ErrorLog(ErrorType indexed errorType, string message);
 }

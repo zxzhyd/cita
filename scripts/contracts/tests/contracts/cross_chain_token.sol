@@ -59,7 +59,7 @@ contract MyToken {
             let ptr := mload(0x40)
             mstore(ptr, getChainIdHash)
             result := call(20000, chainManagerAddr, 0, ptr, 0x4, ptr, 0x20)
-            if eq(result, 0) { revert(ptr, 0) }
+            switch eq(result, 0) case 1 { revert(ptr, 0) }
             cid := mload(ptr)
         }
         return uint32(cid);
