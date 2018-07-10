@@ -1367,7 +1367,7 @@ mod tests {
     fn test_create_contract_out_of_gas() {
         logger::silent();
         let source = r#"
-pragma solidity ^0.4.19;
+pragma solidity ^0.4.14;
 
 contract HelloWorld {
   uint balance;
@@ -1712,17 +1712,17 @@ contract AbiTest {
     fn test_call_instruction() {
         logger::silent();
         let fake_auth = r#"
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.14;
 
 contract FakeAuth {
-    function setAuth() public pure returns(bool) {
+    function setAuth() public constant returns(bool) {
         return true;
     }
 }
 "#;
 
         let fake_permission_manager = r#"
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.14;
 
 contract FakeAuth {
     function setAuth() public returns(bool);

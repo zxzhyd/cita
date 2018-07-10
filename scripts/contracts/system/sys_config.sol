@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.14;
 
 
 /// @title The interface of system config
@@ -14,31 +14,31 @@ interface SysConfigInterface {
     function setWebsite(string) public;
 
     /// @notice Get delay block number before validate
-    function getDelayBlockNumber() public view returns (uint);
+    function getDelayBlockNumber() public constant returns (uint);
 
     /// @notice Whether check permission in the system or not, true represents check and false represents don't check.
-    function getPermissionCheck() public view returns (bool);
+    function getPermissionCheck() public constant returns (bool);
 
     /// @notice Whether check quota in the system or not, true represents check and false represents don't check.
-    function getQuotaCheck() public view returns (bool);
+    function getQuotaCheck() public constant returns (bool);
 
     /// @notice The name of current chain
-    function getChainName() public view returns (string);
+    function getChainName() public constant returns (string);
 
     /// @notice The id of current chain
-    function getChainId() public view returns (uint32);
+    function getChainId() public constant returns (uint32);
 
     /// @notice The operator of current chain
-    function getOperator() public view returns (string);
+    function getOperator() public constant returns (string);
 
     /// @notice Current operator's website URL
-    function getWebsite() public view returns (string);
+    function getWebsite() public constant returns (string);
 
     /// @notice The interval time for creating a block (milliseconds)
-    function getBlockInterval() public view returns (uint64);
+    function getBlockInterval() public constant returns (uint64);
 
     /// @notice The token information
-    function getTokenInfo() public view returns (string, string, string);
+    function getTokenInfo() public constant returns (string, string, string);
 }
 
 
@@ -120,7 +120,7 @@ contract SysConfig is SysConfigInterface {
 
     function getDelayBlockNumber()
         public
-        view
+        constant
         returns (uint)
     {
         return delayBlockNumber;
@@ -128,7 +128,7 @@ contract SysConfig is SysConfigInterface {
 
     function getPermissionCheck()
         public
-        view
+        constant
         returns (bool)
     {
         return checkPermission && (economicalModel == EconomicalModel.Quota);
@@ -136,7 +136,7 @@ contract SysConfig is SysConfigInterface {
 
     function getQuotaCheck()
         public
-        view
+        constant
         returns (bool)
     {
         return checkQuota && (economicalModel == EconomicalModel.Quota);
@@ -144,7 +144,7 @@ contract SysConfig is SysConfigInterface {
 
     function getChainName()
         public
-        view
+        constant
         returns (string)
     {
         return chainName;
@@ -152,7 +152,7 @@ contract SysConfig is SysConfigInterface {
 
     function getChainId()
         public
-        view
+        constant
         returns (uint32)
     {
         return chainId;
@@ -160,7 +160,7 @@ contract SysConfig is SysConfigInterface {
 
     function getOperator()
         public
-        view
+        constant
         returns (string)
     {
         return operator;
@@ -168,7 +168,7 @@ contract SysConfig is SysConfigInterface {
 
     function getWebsite()
         public
-        view
+        constant
         returns (string)
     {
         return website;
@@ -176,7 +176,7 @@ contract SysConfig is SysConfigInterface {
 
     function getBlockInterval()
         public
-        view
+        constant
         returns (uint64)
     {
         return blockInterval;
@@ -184,7 +184,7 @@ contract SysConfig is SysConfigInterface {
 
     function getEconomicalModel()
         public
-        view
+        constant
         returns (EconomicalModel)
     {
         return economicalModel;
@@ -192,7 +192,7 @@ contract SysConfig is SysConfigInterface {
 
     function getTokenInfo()
         public
-        view
+        constant
         returns(string name, string symbol, string avatar)
     {
         name = tokenInfo.name;

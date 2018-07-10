@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.14;
 
 
 /// @title The interface of quota_manager
@@ -23,20 +23,20 @@ interface QuotaInterface {
     function setAQL(address _account, uint _value) public returns (bool);
 
     /// @notice Check the account is admin
-    function isAdmin(address _account) public view returns (bool);
+    function isAdmin(address _account) public constant returns (bool);
 
     /// @notice Get all accounts that have account quota limit
-    function getAccounts() public view returns (address[]);
+    function getAccounts() public constant returns (address[]);
 
     /// @notice Get all accounts' quotas
-    function getQuotas() public view returns (uint[]);
+    function getQuotas() public constant returns (uint[]);
 
     /// @notice Get block quota limit
-    function getBQL() public view returns (uint);
+    function getBQL() public constant returns (uint);
 
     /// @notice Get default account quota limit
-    function getDefaultAQL() public view returns (uint);
+    function getDefaultAQL() public constant returns (uint);
     
     /// @notice Get account quota limit
-    function getAQL(address _account) public view returns (uint);
+    function getAQL(address _account) public constant returns (uint);
 }

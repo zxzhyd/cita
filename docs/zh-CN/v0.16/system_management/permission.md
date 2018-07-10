@@ -328,7 +328,7 @@ a71f68fd5f0a64c0a66737357ec6e491c5bab8e001f8d7116252c22a9a4f03b4
 合约内容：
 
 ```shell
-pragma solidity ^0.4.16;
+pragma solidity ^0.4.14;
 
 
 contract Advance {

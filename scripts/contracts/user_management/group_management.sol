@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.14;
 
 import "./group_creator.sol";
 import "../common/address_array.sol";
