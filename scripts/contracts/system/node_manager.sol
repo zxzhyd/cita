@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.14;
 
 import "../common/address_array.sol";
 import "../common/SafeMath.sol";
@@ -24,7 +24,7 @@ interface NodeInterface {
 
     /// @notice List the consensus nodes that have been approved
     /// which means list the node whose status is start
-    function listNode() public view returns (address[]);
+    function listNode() public constant returns (address[]);
 
     /// @notice Set node stake
     function setStake(address _node, uint64 stake) public;
@@ -33,16 +33,16 @@ interface NodeInterface {
      * @return 0: Close
      * @return 1: Start
      */
-    function getStatus(address _node) public view returns (uint8);
+    function getStatus(address _node) public constant returns (uint8);
 
     /// @notice Check the account is admin
-    function isAdmin(address _account) public view returns (bool);
+    function isAdmin(address _account) public constant returns (bool);
 
     /// @notice Node stake list
-    function listStake() public view returns (uint64[] _stakes);
+    function listStake() public constant returns (uint64[] _stakes);
 
     /// @notice Stake permillage
-    function stakePermillage(address _node) public view returns (uint64);
+    function stakePermillage(address _node) public constant returns (uint64);
 }
 
 
@@ -178,7 +178,7 @@ contract NodeManager is NodeInterface, Error {
     /// @return All the consensus nodes
     function listNode()
         public
-        view
+        constant
         returns (address[])
     {
         return nodes;
@@ -189,7 +189,7 @@ contract NodeManager is NodeInterface, Error {
     /// @return The status of the node
     function getStatus(address _node)
         public
-        view
+        constant
         returns (uint8)
     {
         return uint8(status[_node]);
@@ -200,7 +200,7 @@ contract NodeManager is NodeInterface, Error {
     /// @return true if it is, otherwise false
     function isAdmin(address _account)
         public
-        view
+        constant
         returns (bool)
     {
         return admins[_account];
@@ -210,7 +210,7 @@ contract NodeManager is NodeInterface, Error {
     /// @return All the node stake list
     function listStake()
         public
-        view
+        constant
         returns (uint64[] memory _stakes)
     {
         _stakes = new uint64[](nodes.length);
@@ -226,7 +226,7 @@ contract NodeManager is NodeInterface, Error {
     /// Hare quota
     function stakePermillage(address _node) 
         public 
-        view 
+        constant 
         returns (uint64) 
     {
         uint total;

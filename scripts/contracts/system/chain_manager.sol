@@ -1,4 +1,4 @@
-pragma solidity ^0.4.18;
+pragma solidity ^0.4.14;
 
 import "./error.sol";
 
@@ -57,7 +57,7 @@ contract ChainManager is Error {
 
     function getChainId()
         public
-        view
+        constant
         returns (uint32)
     {
         // SysConfig Contract
@@ -72,7 +72,7 @@ contract ChainManager is Error {
             let ptr := mload(0x40)
             mstore(ptr, getChainIdHash)
             result := call(10000, sysConfigAddr, 0, ptr, 0x4, ptr, 0x20)
-            if eq(result, 0) { revert(ptr, 0) }
+            switch eq(result, 0) case 1 { revert(ptr, 0) }
             cid := mload(ptr)
         }
         return uint32(cid);
@@ -115,7 +115,7 @@ contract ChainManager is Error {
 
     function getAuthorities(uint32 id)
         public
-        view
+        constant
         returns (address[])
     {
         // Is it the parent chain?
