@@ -671,7 +671,6 @@ impl Executor {
             let tmp = self.executed_result.read();
             tmp.get(&height).cloned().to_owned()
         };
-
         let executed_result = match executed_result_option {
             Some(execute_result) => execute_result,
             None => {
