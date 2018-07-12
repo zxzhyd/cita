@@ -193,7 +193,7 @@ contract Authorization {
     /// @return true if passed, otherwise false
     function checkPermission(address _account, address _permission)
         public
-        view
+        constant
         returns (bool)
     {
         return AddressArray.exist(_permission, permissions[_account]);
