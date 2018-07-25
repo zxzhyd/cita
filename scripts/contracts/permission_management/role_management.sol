@@ -1,7 +1,7 @@
 pragma solidity ^0.4.14;
 
 import "./role_creator.sol";
-import "./permission_management.sol";
+import "./authorization.sol";
 import "../common/contract_check.sol";
 import "../common/address_array.sol";
 
@@ -13,15 +13,12 @@ import "../common/address_array.sol";
 /// @dev TODO Split to a new file: role_auth.sol
 contract RoleManagement {
 
-    address roleCreatorAddress = 0xe9E2593C7D1Db5EE843c143E9cB52b8d996b2380;
+    address roleCreatorAddress = 0xffFfffffFfffFffFFFfFfffffffFfFffFF020008;
     RoleCreator roleCreator = RoleCreator(roleCreatorAddress);
 
-    address internal roleManagementAddr = 0xe3b5DDB80AdDb513b5c981e27Bb030A86A8821eE;
-    address internal permissionManagementAddr = 0xffFffFffFFffFFFFFfFfFFfFFFFfffFFff020004;
     address internal authorizationAddr = 0xFFfFffFfffFFFFFfFfFfffFFfFfFfFFfFf020006;
     // bytes4 internal queryPermissionsHash = 0x46f02832;
 
-    PermissionManagement pmContract = PermissionManagement(permissionManagementAddr);
     Authorization authContract = Authorization(authorizationAddr);
 
     mapping(address => address[]) internal accounts;
@@ -255,7 +252,7 @@ contract RoleManagement {
         for (uint i = 0; i<_permissions.length; i++) {
             // Cancel this permission when account has not it in any of his other roles
             if (!hasPermission(_account, _permissions[i]))
-                require(pmContract.cancelAuthorization(_account, _permissions[i]));
+                require(authContract.cancelAuth(_account, _permissions[i]));
         }
 
         return true;
@@ -290,7 +287,7 @@ contract RoleManagement {
         returns (bool)
     {
         for (uint i = 0; i<_permissions.length; i++)
-            require(pmContract.setAuthorization(_account, _permissions[i]));
+            require(authContract.setAuth(_account, _permissions[i]));
 
         return true;
     }
