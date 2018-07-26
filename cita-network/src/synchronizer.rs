@@ -120,9 +120,9 @@ impl Synchronizer {
                     // Chain height does not increase, must loss data, send cache to executor and chain
                     // Chain height does not increase, loss data or data is invalid,
                     // send cache to executor and chain, and clear cache
-                    self.submit_blocks();
                     self.local_sync_count = 0;
                     self.block_lists.clear();
+                    self.start_sync_req(new_height + 1);
                     info!("More than 3 times, clear the cache");
                 }
             }
