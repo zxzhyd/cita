@@ -23,6 +23,7 @@ extern crate libproto;
 extern crate rlp;
 #[macro_use]
 extern crate serde_derive;
+extern crate jsonrpc_types;
 extern crate util;
 
 pub extern crate bloomchain;

@@ -15,11 +15,12 @@
 // along with Parity.  If not, see <http://www.gnu.org/licenses/>.
 
 //! Blockchain filter
-#![rustfmt_skip]
-use ids::BlockId;
-use log_entry::{LogEntry, LogBloom};
-use cita_types::{Address, H256};
+
 use cita_types::traits::BloomTools;
+use cita_types::{Address, H256};
+use ids::BlockId;
+use jsonrpc_types::rpctypes::{Filter as RpcFilter, VariadicValue};
+use log_entry::{LogBloom, LogEntry};
 
 /// Blockchain Filter.
 #[derive(Debug, PartialEq)]
@@ -70,23 +71,28 @@ impl Filter {
     /// Returns combinations of each address and topic.
     pub fn bloom_possibilities(&self) -> Vec<LogBloom> {
         let blooms = match self.address {
-            Some(ref addresses) if !addresses.is_empty() => {
-                addresses.iter().map(|ref address| {
-                    LogBloom::from_raw(address)
-                }).collect()
-            },
+            Some(ref addresses) if !addresses.is_empty() => addresses
+                .iter()
+                .map(|ref address| LogBloom::from_raw(address))
+                .collect(),
             _ => vec![LogBloom::default()],
         };
 
         self.topics.iter().fold(blooms, |bs, topic| match *topic {
             None => bs,
-            Some(ref topics) => bs.into_iter().flat_map(|bloom| {
-                topics.into_iter().map(|topic| {
-                    let mut b = bloom.clone();
-                    b.accrue_raw(topic);
-                    b
-                }).collect::<Vec<LogBloom>>()
-            }).collect(),
+            Some(ref topics) => bs
+                .into_iter()
+                .flat_map(|bloom| {
+                    topics
+                        .into_iter()
+                        .map(|topic| {
+                            let mut b = bloom.clone();
+                            b.accrue_raw(topic);
+                            b
+                        })
+                        .collect::<Vec<LogBloom>>()
+                })
+                .collect(),
         })
     }
 
@@ -95,16 +101,61 @@ impl Filter {
         let matches = match self.address {
             Some(ref addresses) if !addresses.is_empty() => {
                 addresses.iter().any(|address| &log.address == address)
-            },
+            }
             _ => true,
         };
 
-        matches && self.topics.iter().enumerate().all(|(i, topic)| match *topic {
-            Some(ref topics) if !topics.is_empty() => {
-                topics.iter().any(|topic| log.topics.get(i) == Some(topic))
+        matches
+            && self
+                .topics
+                .iter()
+                .enumerate()
+                .all(|(i, topic)| match *topic {
+                    Some(ref topics) if !topics.is_empty() => {
+                        topics.iter().any(|topic| log.topics.get(i) == Some(topic))
+                    }
+                    _ => true,
+                })
+    }
+}
+
+impl From<RpcFilter> for Filter {
+    fn from(v: RpcFilter) -> Filter {
+        Filter {
+            from_block: v.from_block.into(),
+            to_block: v.to_block.into(),
+            address: v.address.and_then(|address| match address {
+                VariadicValue::Null => None,
+                VariadicValue::Single(a) => Some(vec![a.into()]),
+                VariadicValue::Multiple(a) => Some(a.into_iter().map(Into::into).collect()),
+            }),
+            topics: {
+                let mut iter = v
+                    .topics
+                    .map_or_else(Vec::new, |topics| {
+                        topics
+                            .into_iter()
+                            .take(4)
+                            .map(|topic| match topic {
+                                VariadicValue::Null => None,
+                                VariadicValue::Single(t) => Some(vec![t.into()]),
+                                VariadicValue::Multiple(t) => {
+                                    Some(t.into_iter().map(Into::into).collect())
+                                }
+                            })
+                            .collect()
+                    })
+                    .into_iter();
+
+                vec![
+                    iter.next().unwrap_or(None),
+                    iter.next().unwrap_or(None),
+                    iter.next().unwrap_or(None),
+                    iter.next().unwrap_or(None),
+                ]
             },
-            _ => true,
-        })
+            limit: v.limit,
+        }
     }
 }
 
@@ -112,7 +163,7 @@ impl Filter {
 mod tests {
     use filter::Filter;
     use ids::BlockId;
-    use log_entry::{LogEntry, LogBloom};
+    use log_entry::{LogBloom, LogEntry};
 
     #[test]
     fn test_bloom_possibilities_none() {
@@ -137,7 +188,9 @@ mod tests {
             to_block: BlockId::Latest,
             address: Some(vec!["b372018f3be9e171df0581136b59d2faf73a7d5d".into()]),
             topics: vec![
-                Some(vec!["ff74e91598aed6ae5d2fdcf8b24cd2c7be49a0808112a305069355b7160f23f9".into()]),
+                Some(vec![
+                    "ff74e91598aed6ae5d2fdcf8b24cd2c7be49a0808112a305069355b7160f23f9".into(),
+                ]),
                 None,
                 None,
                 None,
@@ -153,10 +206,10 @@ mod tests {
              0000000000000000000000000000000000000000020000000000000000000000
              0000000000000000000000000000000000000000000000000000000000000000
              0000000000000000000000000000000000000000000000000000040000000000
-             0000000000000000000000000000000000000000000000000000000000000000".into()
+             0000000000000000000000000000000000000000000000000000000000000000"
+                .into(),
         ];
         assert_eq!(possibilities, blooms);
-
     }
 
     #[test]
@@ -166,8 +219,12 @@ mod tests {
             to_block: BlockId::Latest,
             address: Some(vec!["b372018f3be9e171df0581136b59d2faf73a7d5d".into()]),
             topics: vec![
-                Some(vec!["ff74e91598aed6ae5d2fdcf8b24cd2c7be49a0808112a305069355b7160f23f9".into()]),
-                Some(vec!["ff74e91598aed6ae5d2fdcf8b24cd2c7be49a0808112a305069355b7160f23f9".into()]),
+                Some(vec![
+                    "ff74e91598aed6ae5d2fdcf8b24cd2c7be49a0808112a305069355b7160f23f9".into(),
+                ]),
+                Some(vec![
+                    "ff74e91598aed6ae5d2fdcf8b24cd2c7be49a0808112a305069355b7160f23f9".into(),
+                ]),
                 None,
                 None,
             ],
@@ -182,7 +239,8 @@ mod tests {
              0000000000000000000000000000000000000000020000000000000000000000
              0000000000000000000000000000000000000000000000000000000000000000
              0000000000000000000000000000000000000000000000000000040000000000
-             0000000000000000000000000000000000000000000000000000000000000000".into()
+             0000000000000000000000000000000000000000000000000000000000000000"
+                .into(),
         ];
         assert_eq!(possibilities, blooms);
     }
@@ -192,7 +250,10 @@ mod tests {
         let filter = Filter {
             from_block: BlockId::Earliest,
             to_block: BlockId::Latest,
-            address: Some(vec!["b372018f3be9e171df0581136b59d2faf73a7d5d".into(), "b372018f3be9e171df0581136b59d2faf73a7d5d".into()]),
+            address: Some(vec![
+                "b372018f3be9e171df0581136b59d2faf73a7d5d".into(),
+                "b372018f3be9e171df0581136b59d2faf73a7d5d".into(),
+            ]),
             topics: vec![
                 Some(vec![
                     "ff74e91598aed6ae5d2fdcf8b24cd2c7be49a0808112a305069355b7160f23f9".into(),
@@ -202,7 +263,9 @@ mod tests {
                     "ff74e91598aed6ae5d2fdcf8b24cd2c7be49a0808112a305069355b7160f23f9".into(),
                     "ff74e91598aed6ae5d2fdcf8b24cd2c7be49a0808112a305069355b7160f23f9".into(),
                 ]),
-                Some(vec!["ff74e91598aed6ae5d2fdcf8b24cd2c7be49a0808112a305069355b7160f23f9".into()]),
+                Some(vec![
+                    "ff74e91598aed6ae5d2fdcf8b24cd2c7be49a0808112a305069355b7160f23f9".into(),
+                ]),
                 None,
             ],
             limit: None,
@@ -218,7 +281,8 @@ mod tests {
              0000000000000000000000000000000000000000020000000000000000000000
              0000000000000000000000000000000000000000000000000000000000000000
              0000000000000000000000000000000000000000000000000000040000000000
-             0000000000000000000000000000000000000000000000000000000000000000".into(),
+             0000000000000000000000000000000000000000000000000000000000000000"
+                .into(),
             "0000000000000000000000000000000000000000000000000000000000000000
              0000000000000000000000000000000000000000000000000000000000000008
              0000000000000000000000000000000000000000800000000000000000000000
@@ -226,7 +290,8 @@ mod tests {
              0000000000000000000000000000000000000000020000000000000000000000
              0000000000000000000000000000000000000000000000000000000000000000
              0000000000000000000000000000000000000000000000000000040000000000
-             0000000000000000000000000000000000000000000000000000000000000000".into(),
+             0000000000000000000000000000000000000000000000000000000000000000"
+                .into(),
             "0000000000000000000000000000000000000000000000000000000000000000
              0000000000000000000000000000000000000000000000000000000000000008
              0000000000000000000000000000000000000000800000000000000000000000
@@ -234,7 +299,8 @@ mod tests {
              0000000000000000000000000000000000000000020000000000000000000000
              0000000000000000000000000000000000000000000000000000000000000000
              0000000000000000000000000000000000000000000000000000040000000000
-             0000000000000000000000000000000000000000000000000000000000000000".into(),
+             0000000000000000000000000000000000000000000000000000000000000000"
+                .into(),
             "0000000000000000000000000000000000000000000000000000000000000000
              0000000000000000000000000000000000000000000000000000000000000008
              0000000000000000000000000000000000000000800000000000000000000000
@@ -242,7 +308,8 @@ mod tests {
              0000000000000000000000000000000000000000020000000000000000000000
              0000000000000000000000000000000000000000000000000000000000000000
              0000000000000000000000000000000000000000000000000000040000000000
-             0000000000000000000000000000000000000000000000000000000000000000".into(),
+             0000000000000000000000000000000000000000000000000000000000000000"
+                .into(),
             "0000000000000000000000000000000000000000000000000000000000000000
              0000000000000000000000000000000000000000000000000000000000000008
              0000000000000000000000000000000000000000800000000000000000000000
@@ -250,7 +317,8 @@ mod tests {
              0000000000000000000000000000000000000000020000000000000000000000
              0000000000000000000000000000000000000000000000000000000000000000
              0000000000000000000000000000000000000000000000000000040000000000
-             0000000000000000000000000000000000000000000000000000000000000000".into(),
+             0000000000000000000000000000000000000000000000000000000000000000"
+                .into(),
             "0000000000000000000000000000000000000000000000000000000000000000
              0000000000000000000000000000000000000000000000000000000000000008
              0000000000000000000000000000000000000000800000000000000000000000
@@ -258,7 +326,8 @@ mod tests {
              0000000000000000000000000000000000000000020000000000000000000000
              0000000000000000000000000000000000000000000000000000000000000000
              0000000000000000000000000000000000000000000000000000040000000000
-             0000000000000000000000000000000000000000000000000000000000000000".into(),
+             0000000000000000000000000000000000000000000000000000000000000000"
+                .into(),
             "0000000000000000000000000000000000000000000000000000000000000000
              0000000000000000000000000000000000000000000000000000000000000008
              0000000000000000000000000000000000000000800000000000000000000000
@@ -266,7 +335,8 @@ mod tests {
              0000000000000000000000000000000000000000020000000000000000000000
              0000000000000000000000000000000000000000000000000000000000000000
              0000000000000000000000000000000000000000000000000000040000000000
-             0000000000000000000000000000000000000000000000000000000000000000".into(),
+             0000000000000000000000000000000000000000000000000000000000000000"
+                .into(),
             "0000000000000000000000000000000000000000000000000000000000000000
              0000000000000000000000000000000000000000000000000000000000000008
              0000000000000000000000000000000000000000800000000000000000000000
@@ -274,7 +344,8 @@ mod tests {
              0000000000000000000000000000000000000000020000000000000000000000
              0000000000000000000000000000000000000000000000000000000000000000
              0000000000000000000000000000000000000000000000000000040000000000
-             0000000000000000000000000000000000000000000000000000000000000000".into(),
+             0000000000000000000000000000000000000000000000000000000000000000"
+                .into(),
         ];
         assert_eq!(possibilities, blooms);
     }
@@ -286,8 +357,12 @@ mod tests {
             to_block: BlockId::Latest,
             address: Some(vec!["b372018f3be9e171df0581136b59d2faf73a7d5d".into()]),
             topics: vec![
-                Some(vec!["ff74e91598aed6ae5d2fdcf8b24cd2c7be49a0808112a305069355b7160f23f9".into()]),
-                Some(vec!["ff74e91598aed6ae5d2fdcf8b24cd2c7be49a0808112a305069355b7160f23fa".into()]),
+                Some(vec![
+                    "ff74e91598aed6ae5d2fdcf8b24cd2c7be49a0808112a305069355b7160f23f9".into(),
+                ]),
+                Some(vec![
+                    "ff74e91598aed6ae5d2fdcf8b24cd2c7be49a0808112a305069355b7160f23fa".into(),
+                ]),
                 None,
                 None,
             ],
