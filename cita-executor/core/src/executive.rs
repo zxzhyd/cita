@@ -2151,10 +2151,12 @@ contract AbiTest {
                 &native_factory,
                 false,
                 EconomicalModel::Quota,
+                false,
+                Address::from(0),
             );
             let mut out = vec![];
             let _ = ex.call(
-                params,
+                &params,
                 &mut substate,
                 BytesRef::Flexible(&mut out),
                 &mut tracer,
